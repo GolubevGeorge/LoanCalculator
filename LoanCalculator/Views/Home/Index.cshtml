@@ -1,0 +1,110 @@
+﻿
+<h1>Loan Calculator</h1>
+
+<table>
+    <tr><td><label>Loan amount (UAH): </label></td><td><input type="number" id="addAmount" /></td></tr>
+    <tr><td><label>Loan duration (in months) : </label></td><td><input type="number" id="addDuration" /></td></tr>
+    <tr><td><label>Loan interest (in %): </label></td><td><input type="number" id="addInterest" /></td></tr>
+</table>
+
+<button type="button" class="btn btn-success" id="addEntry">Calculate</button>
+<div id="tableShow"></div>
+<button type="button" class="btn btn-danger" id="clearAll">Clear</button>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        //alert('Document ready!');
+        GetEntry()
+
+    });
+
+    $("#addEntry").click(function (event) {
+        event.preventDefault();
+        AddEntry();
+    });
+
+    $("#clearAll").click(function (event) {
+        event.preventDefault();
+        ClearAll();
+    });
+
+
+    function GetEntry() {
+        $.ajax({
+            url: '/api/loan',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                Show(data);
+            },
+            error: function (x, y, z) {
+                alert(x + '\n' + y + '\n' + z);
+            }
+        });
+    }
+
+    function AddEntry() {
+        var value = {
+            Amount: $('#addAmount').val(),
+            Duration: $('#addDuration').val(),
+            Interest: $('#addInterest').val()
+        };
+
+        //I think it's easier to arrange a calculation here
+
+        if (value == undefined) { value = []; }
+
+
+        $.ajax({
+            url: '/api/loan',
+            type: 'POST',
+            data: JSON.stringify(value),
+            contentType: "application/json;charset=utf-8",
+            success: function (data) {
+                GetEntry();
+            },
+            error: function (x, y, z) {
+                alert(x + '\n' + y + '\n' + z);
+            }
+        });
+    }
+
+    function ClearAll() {
+        $.ajax({
+            url: '/api/loan',
+            type: 'DELETE',
+            dataType: 'json',
+            success: function (data) {
+                Show(data);
+                //alert("All deleted!");
+            },
+            error: function (x, y, z) {
+                alert(x + '\n' + y + '\n' + z);
+            }
+        });
+
+    }
+
+    function Show(data) {
+        var strResult = "<table class=\"table\"><th>ID</th>" +
+            "<th>Loan amount </th>" +
+            "<th>Loan duration </th>" +
+            "<th>Loan interest </th>" +
+            "<th>Amortization </th>";
+
+        if (data == undefined) { data = []; }
+        else {
+            $.each(data, function (index, value) {
+                strResult +=
+                    "<tr><td>" + value.Id +
+                    "</td><td> " + value.Amount + " UAH" +
+                    "</td><td>" + value.Duration + " months" +
+                    "</td><td>" + value.Interest + " %" +
+                    "</td><td>" + value.Amortization + " UAH"
+            });
+        }
+
+        strResult += "</table>";
+        $("#tableShow").html(strResult);
+    }
+</script>
